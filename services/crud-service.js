@@ -1,7 +1,10 @@
 const { MongoClient, ObjectId } = require("mongodb");
-
-const url = "mongodb://127.0.0.1:27017";
+const moment = require("moment");
+const process = require("process");
+require("dotenv").config();
+const url = process.env.MONGODBURL;
 const mongoDB = new MongoClient(url);
+const _ = require("underscore");
 const dbName = "admin";
 
 module.exports.findService = () => {
@@ -10,7 +13,7 @@ module.exports.findService = () => {
       mongoDB
         .db(dbName)
         .collection("users")
-        .find()
+        .find({ department: { $in: ["cse"] } })
         .toArray()
         .then((result, error) => {
           if (error) {
@@ -23,6 +26,11 @@ module.exports.findService = () => {
                 documents: {},
               });
             } else {
+              var userNames = [];
+              _.map(result, function (user) {
+                userNames.push(user.name);
+              });
+              console.log(userNames);
               resolve({
                 status: true,
                 msg: "Documents fetched successfully!",
@@ -48,7 +56,7 @@ module.exports.findOneService = () => {
       mongoDB
         .db(dbName)
         .collection("users")
-        .findOne({ _id: new ObjectId("650179d6e3c4ff05fc214948") })
+        .findOne({ department: { $nin: ["cse"] } })
         .then((result, error) => {
           if (error) {
             reject({ status: false, msg: "Unable to fetch the document" });
@@ -86,43 +94,15 @@ module.exports.updateOneService = (userDetails) => {
         .db(dbName)
         .collection("users")
         .updateOne(
-          { _id: userDetails.objectId },
-          {
-            $set: {
-              name: userDetails.name,
-            },
-          }
-        )
-        .then((result, error) => {
-          if (error) {
-            reject({ status: false, msg: "Unable to update the document" });
-          } else {
-            resolve({
-              status: true,
-              msg: "Document updated successfully!",
-            });
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    } catch (err) {
-      console.log(err);
-    }
-  });
-};
-
-module.exports.updateOneService = (userDetails) => {
-  return new Promise(function crudService(resolve, reject) {
-    try {
-      mongoDB
-        .db(dbName)
-        .collection("users")
-        .updateOne(
           { _id: new ObjectId(userDetails.objectId) },
           {
-            $set: {
-              name: userDetails.name,
+            $push: {
+              tasks: {
+                taskId: userDetails.taskId,
+                taskName: userDetails.taskName,
+                progressStatus: userDetails.progressStatus,
+                createdDate: moment(new Date()).format("MM/DD/YYYY"),
+              },
             },
           }
         )
@@ -378,11 +358,7 @@ module.exports.findOneAndUpdateNewService = (userDetails) => {
           {
             _id: new ObjectId(userDetails.objectId),
           },
-          {
-            $set: {
-              projectDone: userDetails.projectDone,
-            },
-          },
+          { $pull: { tasks: { taskId: { $eq: userDetails.taskId } } } },
           {
             returnDocument: "after",
           }
@@ -455,7 +431,7 @@ module.exports.arrayFiltersUpdateService = (userDetails) => {
             arrayFilters: [
               {
                 "item.taskId": {
-                  $eq: userDetails.taskId,
+                  $ne: userDetails.taskId,
                 },
               },
             ],

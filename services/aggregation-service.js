@@ -1,6 +1,7 @@
 const { MongoClient, ObjectId } = require("mongodb");
-
-const url = "mongodb://127.0.0.1:27017";
+const process = require("process");
+require("dotenv").config();
+const url = process.env.MONGODBURL;
 const mongoDB = new MongoClient(url);
 const dbName = "admin";
 
@@ -489,6 +490,7 @@ module.exports.dateToStringService = () => {
     }
   });
 };
+
 module.exports.dateFromStringService = () => {
   return new Promise(function aggregationService(resolve, reject) {
     try {

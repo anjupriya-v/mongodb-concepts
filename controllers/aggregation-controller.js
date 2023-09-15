@@ -189,22 +189,3 @@ module.exports.dateFromStringController = async (req, res) => {
     res.send({ status: false, message: "Something Went Wrong!" });
   }
 };
-
-module.exports.pushPullController = async (req, res) => {
-  var result = null;
-  try {
-    result = await aggregationService.dateFromStringService();
-    if (result.status) {
-      res.send({
-        status: true,
-        message: result.msg,
-        documents: result.documents,
-      });
-    } else {
-      res.send({ status: false, message: result.msg });
-    }
-  } catch (error) {
-    console.log(error);
-    res.send({ status: false, message: "Something Went Wrong!" });
-  }
-};

@@ -44,6 +44,5 @@ router
 router
   .route("/date-from-string")
   .get(aggregationController.dateFromStringController);
-router.route("/push-pull").get(aggregationController.pushPullController);
 
 module.exports = router;
